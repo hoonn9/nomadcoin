@@ -2,28 +2,26 @@ package main
 
 import "fmt"
 
+type person struct {
+	name string
+	age int
+}
+
+// struct method 생성
+// (<struct variable name> <struct>)<function name>(arguments) <returnType> {}
+// 흔히 struct 명의 첫 자를 변수명으로 사용함
+func (p person) sayHello() {
+	fmt.Printf("Hello! My name is %s and I'm %d", p.name, p.age)
+}
+
+
+
 func main() {
 	/*
-		포인터
-		빠르게 만들고 data를 mutate 하는걸 간단하게 해준다.
+		go는 class, object가 없다.
+		struct가 그 역할을 함.
 	*/
-
-	/*
-	a := 2
-	// a를 copy
-	b := a
-	a = 12
-	fmt.Println(b)
-	// 결과: 2
-	fmt.Println(&b, &a)
-	*/
-
-	a := 2
-	// a의 메모리 주소를 복사
-	b := &a
-	a = 50
-	// b에 복사된 메모리 주소에 있는 값: *b
-	fmt.Println(*b)
-	// 결과: 50
-	fmt.Println(b, &a)
+	// hoon := person{"hoon", 26}
+	hoon := person{name: "hoon",age: 26}
+	hoon.sayHello()
 }
