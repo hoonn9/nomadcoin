@@ -2,17 +2,27 @@ package main
 
 import "fmt"
 
-
 func main() {
-	x := 31254125234
-	// binary 2
-	// sprintf => format 된 데이터 반환
-	xAsBinary := fmt.Sprintf("%b\n", x)
-	fmt.Println(x, xAsBinary)
-	// // 8
-	// fmt.Printf("%o\n", x)
-	// // 16
-	// fmt.Printf("%x\n", x)
+	// array
+	// go는 array 크기를 정해줘야 한다.
+	// array는 append 불가
+	// foods := [3]string{"potato", "pizza", "pasta"}
 
+	// for _, foods := range foods {
+	// 	fmt.Println(foods)
+	// }
+
+	// for i := 0; i<len(foods); i++ {
+	// 	fmt.Println(foods[i])
+	// }
+
+	// slice 배열은 무한히 커질 수 있다.
+	// go가 알아서 공간 늘려줌
+	foods := []string{"potato", "pizza", "pasta"}
+
+	fmt.Printf("%v\n", foods)
+	// append 는 element 를 추가한 배열을 반환
+	foods = append(foods, "tomato")
+	fmt.Printf("%v\n", foods)
 
 }
