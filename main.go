@@ -2,14 +2,27 @@ package main
 
 import "fmt"
 
-const constant string = "cool"
+// func plus (a, b int, name string) (int, string) {
+// 	return a + b, name
+// }
+
+// func plus (a ...int) (int) {
+// 	total := 0
+// 	for _, item := range a {
+// 		total += item
+// 	}
+// 	return total
+// }
+
+
 
 func main() {
-	// var name string = "hello"
-	name := "hello"
-	// shortcut 변수 선언을 함수 밖에서 사용 불가
-	name = "hoon"
-	fmt.Println(name)
-}
+	// result := plus(2, 3, 4, 5, 6, 7)
+	name := "hoon ! ! ! ! ! ! Is my name"
 
-var test string = "dasd"
+	// 기본적으로 byte로 넘겨줌
+	for _, letter := range name {
+		fmt.Println(string(letter))
+		fmt.Printf("%x", letter)
+	}
+}
