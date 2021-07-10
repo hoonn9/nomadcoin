@@ -3,26 +3,27 @@ package main
 import "fmt"
 
 func main() {
-	// array
-	// go는 array 크기를 정해줘야 한다.
-	// array는 append 불가
-	// foods := [3]string{"potato", "pizza", "pasta"}
+	/*
+		포인터
+		빠르게 만들고 data를 mutate 하는걸 간단하게 해준다.
+	*/
 
-	// for _, foods := range foods {
-	// 	fmt.Println(foods)
-	// }
+	/*
+	a := 2
+	// a를 copy
+	b := a
+	a = 12
+	fmt.Println(b)
+	// 결과: 2
+	fmt.Println(&b, &a)
+	*/
 
-	// for i := 0; i<len(foods); i++ {
-	// 	fmt.Println(foods[i])
-	// }
-
-	// slice 배열은 무한히 커질 수 있다.
-	// go가 알아서 공간 늘려줌
-	foods := []string{"potato", "pizza", "pasta"}
-
-	fmt.Printf("%v\n", foods)
-	// append 는 element 를 추가한 배열을 반환
-	foods = append(foods, "tomato")
-	fmt.Printf("%v\n", foods)
-
+	a := 2
+	// a의 메모리 주소를 복사
+	b := &a
+	a = 50
+	// b에 복사된 메모리 주소에 있는 값: *b
+	fmt.Println(*b)
+	// 결과: 50
+	fmt.Println(b, &a)
 }
