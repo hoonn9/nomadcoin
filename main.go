@@ -9,7 +9,11 @@ import (
 	"github.com/hoonn9/nomadcoin/blockchain"
 )
 
-const port string = ":4000"
+const (
+	port string = ":4000"
+	templateDir string = "templates/"
+)
+var templates *template.Template
 
 // template render 도 private public 영향을 받음
 type homeData struct {
@@ -17,17 +21,16 @@ type homeData struct {
 	Blocks []*blockchain.Block
 }
 func home(rw http.ResponseWriter, r *http.Request) {
-
-	// Fprint => writer 에 formatting 해서 출력
-	// fmt.Fprint(rw, "Hello from home!")
-
-	// template Must => error 출력 후 panic 발생 해줌
-	tmpl := template.Must(template.ParseFiles("templates/home.gohtml"))
 	data := homeData{"Home", blockchain.GetBlockchain().AllBlocks()}
-	tmpl.Execute(rw, data)
+	templates.ExecuteTemplate(rw, "home", data)
 }
 
 func main() {
+	// go는 ** 지원 안함
+	// template pattern load
+	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
+	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml"))
+
 	// route
 	http.HandleFunc("/", home)
 
