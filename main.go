@@ -9,54 +9,50 @@ import (
 
 const port string = ":4000"
 
+type URL string
 
-/*
-	field struct tag
-	Go에서 export를 위해 대문자로 시작하는 property Key를 
-	json에 맞게 소문자로 가공
-	json:"<key>"`
-	omitempty => field가 비어있으면 숨겨준다.
-*/
+// Json 을 반환할 때 가공해서 반환 MarshalText
+func (u URL) MarshalText() ([]byte, error) {
+	return []byte(fmt.Sprintf("http://localhost%s%s", port, u)), nil
+}
 
+// type URLDescription struct implements ... 대신 interface method
 type URLDescription struct {
-	URL 		string `json:"url"`
+	URL 		URL `json:"url"`
 	Method 		string `json:"method"`
 	Description string `json:"description"`
 	Payload		string `json:"payload,omitempty"`
 }
-/**
-	Marshal 
-	메모리형식으로 저장된 객체를 저장, 송신 가능하게 만들어 주는 것
-	Unmarshal
-	반대
+
+// Stringers
+// struct 출력 시 return 값 제어
+// Go 는 extends, implements가 없어서 interface가 method로 해결한다.
+/*
+func (u URLDescription) String() string {
+	return "Hello I'm the URL Description"
+}
 */
+
+
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	data := []URLDescription{
 		{
-			URL: "/",
+			URL: URL("/"),
 			Method: "GET",
 			Description: "See Documentation",
 		},
 		{
-			URL: "/blocks",
+			URL: URL("/blocks"),
 			Method: "POST",
 			Description: "Add A Block",
 			Payload: "data:string",
 		},
 	}
 	rw.Header().Add("Content-Type", "application/json")
-	// #1 
-	// slice to json(byte[])
-	// b, err := json.Marshal(data)
-	// utils.HandleErr(err)
-
-	// fmt.Fprintf(rw, "%s", b)
-
-	// #2
 	json.NewEncoder(rw).Encode(data)
-
-	
 }
+
+
 
 func main() {
 	http.HandleFunc("/", documentation)
