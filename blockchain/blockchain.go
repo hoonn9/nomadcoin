@@ -7,44 +7,19 @@ import (
 )
 
 type Block struct {
-	Data string
-	Hash string
-	PrevHash string
+	Data 	string 	`json:"data"`
+	Hash 	string	`json:"hash"`
+	PrevHash string	`json:"prevHash,omitempty"`
+	Height 	int		`json:"height"`
 }
 
 type blockchain struct {
 	blocks []*Block
 }
 
-
-// 단방향 함수
-// 입력 값으로 얻은 출력값을 출력값을 통해 입력값을 얻을 수 없음
-
-/*
-	하나의 hash만 변해도 전체가 변함. 무효화 된다.
-
-	B1
-		b1Hash = (data + "")
-	B2
-		b2Hash = (data + b1Hash)
-	B3
-		b3Hash = (data + b2Hash)
-*/
-
-
-/*
-	singleton: application 내 어디서든 단 하나의 instance를 공유하는 패턴
-*/
-
 var b *blockchain
 var once sync.Once
 
-/*
-	sync package
-	동기적 실행 관리
-
-	코드를 thread가 몇 개이던, goroutine 이던 단 한번만 실행 => sync.Once
-*/
 
 func (b *Block) calculateHash() {
 	hash := sha256.Sum256([]byte(b.Data + b.PrevHash))
@@ -60,7 +35,7 @@ func getLastHash() string {
 }
 
 func createBlock(data string) *Block {
-	newBlock := Block{data, "", getLastHash()}
+	newBlock := Block{data, "", getLastHash(), len(GetBlockchain().blocks) + 1}
 	newBlock.calculateHash()
 	return &newBlock
 }
@@ -82,4 +57,8 @@ func GetBlockchain() *blockchain {
 
 func (b *blockchain) AllBlocks() []*Block {
 	return b.blocks
+}
+
+func (b *blockchain) GetBlock(height int) *Block {
+	return b.blocks[height - 1]
 }

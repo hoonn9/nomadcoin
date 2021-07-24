@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/hoonn9/nomadcoin/blockchain"
 	"github.com/hoonn9/nomadcoin/utils"
 )
@@ -45,7 +47,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Payload: "data:string",
 		},
 		{
-			URL: url("/blocks/{id}"),
+			URL: url("/blocks/{height}"),
 			Method: "GET",
 			Description: "See A Block",
 		},
@@ -64,17 +66,30 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
 		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
 		rw.WriteHeader(http.StatusCreated)
+	default:
+		rw.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-func Start(aPort int) {
-	// Mux === MultiPlexer
-	handler := http.NewServeMux()
+func block(rw http.ResponseWriter , r *http.Request) {
+	vars := mux.Vars(r)
+	// String to Integer Atoi
+	id, err := strconv.Atoi(vars["height"])
+	utils.HandleErr(err)
 
+	block := blockchain.GetBlockchain().GetBlock(id)
+	json.NewEncoder(rw).Encode(block)
+}
+
+func Start(aPort int) {
+	// Middleware
+	handler := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
 
-	handler.HandleFunc("/", documentation)
-	handler.HandleFunc("/blocks", blocks)
+	// Methods => request method 제한
+	handler.HandleFunc("/", documentation).Methods("GET")
+	handler.HandleFunc("/blocks", blocks).Methods("GET", "POST")
+	handler.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 
 	fmt.Printf("Listening on http://localhost%s\n",port)
 	// handler nil이면 default mux
