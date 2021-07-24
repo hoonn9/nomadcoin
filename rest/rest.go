@@ -33,6 +33,10 @@ type addBlockBody struct {
 	Message string
 }
 
+type errResponse struct {
+	ErrorMessage string `json:"errorMessage"`
+}
+
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	data := []urlDescription{
 		{
@@ -77,8 +81,15 @@ func block(rw http.ResponseWriter , r *http.Request) {
 	id, err := strconv.Atoi(vars["height"])
 	utils.HandleErr(err)
 
-	block := blockchain.GetBlockchain().GetBlock(id)
-	json.NewEncoder(rw).Encode(block)
+	block, err := blockchain.GetBlockchain().GetBlock(id)
+
+	encoder := json.NewEncoder(rw)
+	if err == blockchain.ErrNotFound {
+		// Sprint 는 DefaultFormat 사용
+		encoder.Encode(errResponse{fmt.Sprint(err)})
+	} else {
+		encoder.Encode(block)
+	}
 }
 
 func Start(aPort int) {
