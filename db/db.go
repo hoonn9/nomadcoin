@@ -13,7 +13,6 @@ const (
 
 var db *bolt.DB
 
-// bucket (sql의 table 같은)
 
 // singleton
 func DB() *bolt.DB {
@@ -22,7 +21,7 @@ func DB() *bolt.DB {
 		dbPointer, err := bolt.Open("blockchain.db", 0600, nil)
 		utils.HandleErr(err)
 		
-		// Bucket 생성
+		// Bucket(sql의 table 같은) 생성
 		// transaction (read, write)
 		err = db.Update(func(t *bolt.Tx) error {
 			_, err = t.CreateBucketIfNotExists([]byte(dataBucket))
