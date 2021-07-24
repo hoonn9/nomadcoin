@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	port string = ":4000"
 	templateDir string = "explorer/templates/"
 )
 var templates *template.Template
@@ -38,18 +37,21 @@ func add(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Start() {
+func Start(port int) {
+	// Mux === MultiPlexer
+	handler := http.NewServeMux()
+	
 	// go는 ** 지원 안함
 	// template pattern load
 	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
 	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml"))
 
 	// route
-	http.HandleFunc("/", home)
-	http.HandleFunc("/add", add)
+	handler.HandleFunc("/", home)
+	handler.HandleFunc("/add", add)
 
 	// go server
-	fmt.Printf("Listening on http://localhost%s\n", port)
+	fmt.Printf("Listening on http://localhost:%d\n", port)
 	// log.Fatal 에러가 있으면 출력 하고 os.Exit(1) 프로그램 종료
-	log.Fatal(http.ListenAndServe(port, nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), handler))
 }
