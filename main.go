@@ -1,18 +1,33 @@
 package main
 
 import (
-	"github.com/hoonn9/nomadcoin/rest"
+	"fmt"
+	"os"
 )
 
-func main() {
-	// rest 실행 안됨
-	// go routine 실행
-	// router 중복 에러 => http router 모듈이 서로 같은 것을 처리하고 있음
-	// 같은 multiplexer 를 사용하고 있는 문제
-	
-	rest.Start(4000)
+func usage() {
+	fmt.Printf("Welcome to Nomad Coin\n")
+	fmt.Printf("Please use the following commands:\n\n")
+	fmt.Printf("explorer:	Start the HTML Explorer\n")
+	fmt.Printf("rest:	Start the REST API(recommanded)\n")
+	// error code 0 => 에러 없음
+	os.Exit(0)
+}
 
-	/*
-		Multiplexer => url 을 보고 request를 처리하고 handler 호출
-	*/
+// CLI (Command Line Interface)
+// only using flag package (cobra's famous cli framework but not using)
+
+func main() {
+	if len(os.Args) < 2 {
+		usage()
+	}
+	// command
+	switch os.Args[1] {
+	case "explorer":
+		fmt.Println("Start Explorer")
+	case "rest":
+		fmt.Println("Start REST API")
+	default:
+		usage()
+	}
 }
