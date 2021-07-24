@@ -56,14 +56,12 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See A Block",
 		},
 	}
-	rw.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(data)
 }
 
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		rw.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
 	case "POST":
 		var addBlockBody addBlockBody
@@ -92,17 +90,32 @@ func block(rw http.ResponseWriter , r *http.Request) {
 	}
 }
 
+// middleware
+func jsonContentTypeMiddleware(next http.Handler) http.Handler {
+
+	// HandleFunc 은 type이다.
+	// 이 함수의 return 타입인 http.Handler 에 오류를 안띄우는 이유는
+	// HandleFunc의 receiver method 가 arguments에 따라 동적인 return 을 주기 때문이다. (adaptor 패턴)
+	
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(rw, r)
+	})
+}
+
 func Start(aPort int) {
-	// Middleware
-	handler := mux.NewRouter()
+	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
+	
+	// Middleware
+	router.Use(jsonContentTypeMiddleware)
 
 	// Methods => request method 제한
-	handler.HandleFunc("/", documentation).Methods("GET")
-	handler.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	handler.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
+	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 
 	fmt.Printf("Listening on http://localhost%s\n",port)
 	// handler nil이면 default mux
-	log.Fatal(http.ListenAndServe(port,  handler))
+	log.Fatal(http.ListenAndServe(port,  router))
 }
