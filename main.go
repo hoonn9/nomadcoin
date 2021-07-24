@@ -1,8 +1,9 @@
 package main
 
-import "github.com/hoonn9/nomadcoin/cli"
+import "github.com/hoonn9/nomadcoin/blockchain"
 
 
 func main() {
-	cli.Start()
+	// cli.Start()
+	blockchain.Blockchain()
 }
