@@ -9,13 +9,18 @@ import (
 	"github.com/hoonn9/nomadcoin/utils"
 )
 
+// n<difficulty>개의 0으로 시작하는 해쉬 값을 찾는다.
+const difficulty int = 2
+
+// Nonce  채굴자들이 유일하게 바꿀 수 있는 값 (1회성 값)
+
 type Block struct {
-	Data 	string 	`json:"data"`
-	Hash 	string	`json:"hash"`
-	PrevHash string	`json:"prevHash,omitempty"`
-	Height 	int		`json:"height"`
-	Difficulty	int	`json:"difficulty"`
-	Nonce		int	`json:"nonce"`
+	Data 		string 	`json:"data"`
+	Hash 		string	`json:"hash"`
+	PrevHash 	string	`json:"prevHash,omitempty"`
+	Height 		int		`json:"height"`
+	Difficulty	int		`json:"difficulty"`
+	Nonce		int		`json:"nonce"`
 }
 
 var ErrNotFound = errors.New("block not found")
@@ -52,3 +57,4 @@ func createBlock(data string, prevHash string, height int) *Block {
 	block.persist()
 	return block
 }
+
