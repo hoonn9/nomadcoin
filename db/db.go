@@ -1,8 +1,6 @@
 package db
 
 import (
-	"fmt"
-
 	"github.com/boltdb/bolt"
 	"github.com/hoonn9/nomadcoin/utils"
 )
@@ -42,7 +40,6 @@ func DB() *bolt.DB {
 
 // key = hash 
 func SaveBlock(hash string, data []byte) {
-	fmt.Printf("Saving Block %s\nData: %b\n", hash, data)
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(blocksBucket))
 		return bucket.Put([]byte(hash), data)
