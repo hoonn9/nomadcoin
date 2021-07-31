@@ -1,18 +1,15 @@
 package blockchain
 
 import (
-	"crypto/sha256"
 	"errors"
-	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hoonn9/nomadcoin/db"
 	"github.com/hoonn9/nomadcoin/utils"
 )
 
 // n<difficulty>개의 0으로 시작하는 해쉬 값을 찾는다.
-const difficulty int = 2
-
 // Nonce  채굴자들이 유일하게 바꿀 수 있는 값 (1회성 값)
 
 type Block struct {
@@ -22,6 +19,7 @@ type Block struct {
 	Height 		int		`json:"height"`
 	Difficulty	int		`json:"difficulty"`
 	Nonce		int		`json:"nonce"`
+	Timestamp	int		`json:"timestamp"`
 }
 
 var ErrNotFound = errors.New("block not found")
@@ -49,9 +47,8 @@ func FindBlock(hash string) (*Block, error){
 func (b *Block) mine() {
 	target := strings.Repeat("0", b.Difficulty)
 	for {
-		blockAsString := fmt.Sprint(b)
-		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(blockAsString)))
-		fmt.Printf("Block as String: %s\nHash:%s\nTarget:%s\nNonce:%d\n\n\n", blockAsString, hash, target, b.Nonce)
+		b.Timestamp = int(time.Now().Unix())
+		hash := utils.Hash(b)
 		if strings.HasPrefix(hash, target) {
 			b.Hash = hash
 			break
@@ -67,7 +64,7 @@ func createBlock(data string, prevHash string, height int) *Block {
 		Hash: "",
 		PrevHash: prevHash,
 		Height: height,
-		Difficulty: difficulty,
+		Difficulty: Blockchain().difficulty(),
 		Nonce: 0,
 	}
 	// hash 생성에 값들을 나열하면서 붙이는 방법이 좋지 못함.
