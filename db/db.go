@@ -73,6 +73,9 @@ func Checkpoint() []byte {
 	return data
 }
 
+func Close() {
+	DB().Close()
+}
 
 func Block(hash string) []byte {
 	var data []byte

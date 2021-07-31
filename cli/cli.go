@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -20,7 +21,10 @@ func usage() {
 	fmt.Printf("-port:		Set the PORT of the server\n")
 	fmt.Printf("-mode:		Choose between 'html' and 'rest'\n")
 	// error code 0 => 에러 없음
-	os.Exit(0)
+	// os.Exit(0)
+
+	// defer 는 실행하고 종료
+	runtime.Goexit()
 }
 
 // CLI (Command Line Interface)

@@ -36,12 +36,34 @@ func (b *blockchain) AddBlock(data string) {
 }
 
 
+func (b *blockchain) Blocks() []*Block {
+	var blocks []*Block
+	hashCursor := b.NewestHash
+
+	// while(true) 종료는 break
+	for {
+		block, _ := FindBlock(hashCursor)
+		blocks = append(blocks, block)
+
+		if block.PrevHash != "" {
+			hashCursor = block.PrevHash
+		} else {
+			// PrevHash 가 없으면 Genesis block
+			break
+		}
+	}
+
+	return blocks
+}
+
+
 func Blockchain() *blockchain {
 	// only once execute
 	if b == nil {
 		once.Do(func() {
 			b = &blockchain{"", 0}
 
+			// 이전의 Block들 복구
 			checkpoint := db.Checkpoint()
 
 			// checkpoint not found
