@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hoonn9/nomadcoin/blockchain"
+	"github.com/hoonn9/nomadcoin/utils"
 )
 
 var port string
@@ -25,6 +26,11 @@ type urlDescription struct {
 	Method 		string 	`json:"method"`
 	Description string 	`json:"description"`
 	Payload		string 	`json:"payload,omitempty"`
+}
+
+type balanceResponse struct {
+	Address 	string	`json:"address"`
+	Amount		int	`json:"amount"`
 }
 
 type errResponse struct {
@@ -53,6 +59,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			URL: url("/blocks/{hash}"),
 			Method: "GET",
 			Description: "See A Block",
+		},
+		{
+			URL: url("/balance/{address}"),
+			Method: "GET",
+			Description: "Get TxOuts for and Address",
 		},
 	}
 	json.NewEncoder(rw).Encode(data)
@@ -102,6 +113,21 @@ func status(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(blockchain.Blockchain())
 }
 
+func balance(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	address := vars["address"]
+	total := r.URL.Query().Get("total")
+
+	switch total {
+	case "true":
+		amount := blockchain.Blockchain().BalanceByAddress(address)
+		json.NewEncoder(rw).Encode(balanceResponse{address, amount})
+	default:
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().TxOutsByAddress(address)))
+	}
+
+}
+
 func Start(aPort int) {
 	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
@@ -115,7 +141,7 @@ func Start(aPort int) {
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	// hex  => a-f0-9
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
-
+	router.HandleFunc("/balance/{address}", balance).Methods("GET")
 	fmt.Printf("Listening on http://localhost%s\n",port)
 	// handler nil이면 default mux
 	log.Fatal(http.ListenAndServe(port,  router))
