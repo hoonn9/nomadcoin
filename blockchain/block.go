@@ -14,13 +14,13 @@ import (
 // Nonce  채굴자들이 유일하게 바꿀 수 있는 값 (1회성 값)
 
 type Block struct {
-	Data 		string 	`json:"data"`
-	Hash 		string	`json:"hash"`
-	PrevHash 	string	`json:"prevHash,omitempty"`
-	Height 		int		`json:"height"`
-	Difficulty	int		`json:"difficulty"`
-	Nonce		int		`json:"nonce"`
-	Timestamp	int		`json:"timestamp"`
+	Hash 			string	`json:"hash"`
+	PrevHash 		string	`json:"prevHash,omitempty"`
+	Height 			int		`json:"height"`
+	Difficulty		int		`json:"difficulty"`
+	Nonce			int		`json:"nonce"`
+	Timestamp		int		`json:"timestamp"`
+	Transactions 	[]*Tx	`json:"transactions"`
 }
 
 var ErrNotFound = errors.New("block not found")
@@ -60,14 +60,14 @@ func (b *Block) mine() {
 	}
 }
 
-func createBlock(data string, prevHash string, height int) *Block {
+func createBlock(prevHash string, height int) *Block {
 	block := &Block{
-		Data: data,
 		Hash: "",
 		PrevHash: prevHash,
 		Height: height,
 		Difficulty: Blockchain().difficulty(),
 		Nonce: 0,
+		Transactions: []*Tx{makeCoinbaseTx("nico")},
 	}
 	// hash 생성에 값들을 나열하면서 붙이는 방법이 좋지 못함.
 	// block 자체를 Hash

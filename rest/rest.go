@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hoonn9/nomadcoin/blockchain"
-	"github.com/hoonn9/nomadcoin/utils"
 )
 
 var port string
@@ -28,10 +27,6 @@ type urlDescription struct {
 	Payload		string 	`json:"payload,omitempty"`
 }
 
-type addBlockBody struct {
-	Message string
-}
-
 type errResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
@@ -44,7 +39,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See Documentation",
 		},
 		{
-			URL: url("status"),
+			URL: url("/status"),
 			Method: "GET",
 			Description: "See the Status of the Blockchain",
 		},
@@ -68,9 +63,7 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 	case "GET":
 		json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
 	case "POST":
-		var addBlockBody addBlockBody
-		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
-		blockchain.Blockchain().AddBlock(addBlockBody.Message)
+		blockchain.Blockchain().AddBlock()
 		rw.WriteHeader(http.StatusCreated)
 	default:
 		rw.WriteHeader(http.StatusMethodNotAllowed)
