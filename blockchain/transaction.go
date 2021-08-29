@@ -68,12 +68,46 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 	if Blockchain().BalanceByAddress(from) < amount {
 		return nil, errors.New("not enough money")
 	}
-	////
-}
+	// 송금 양 amount 만큼 txIn 생성
+	var txIns []*TxIn
+	var txOuts []*TxOut
+	total := 0
+	oldTxOuts := Blockchain().TxOutsByAddress(from)
+
+	// 같거나 커질 때까지
+	for _, txOut := range oldTxOuts {
+		if total >= amount {
+			break
+		}
+		txIn := &TxIn{txOut.Owner, txOut.Amount}
+		txIns = append(txIns, txIn)
+		total += txOut.Amount
+	}
+
+	// 잔돈
+	change := total - amount
+	if change != 0 {
+		changeTxOut := &TxOut{from, change}
+		txOuts = append(txOuts, changeTxOut)
+	}
+
+	txOut := &TxOut{to, amount}
+	txOuts = append(txOuts, txOut)
+
+	tx := &Tx {
+		Id: "",
+		Timestamp: int(time.Now().Unix()),
+		TxIns: txIns,
+		TxOuts: txOuts,
+	}
+	tx.getId()
+
+	return tx, nil
+ }
 
 // from 은 지갑에서 받아옴
 func (m *mempool) AddTx(to string, amount int) error {
-	tx, err := makeTx("hoon", to, amount)
+	tx, err := makeTx("nico", to, amount)
 	if err != nil {
 		return err
 	}
