@@ -98,8 +98,7 @@ func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
 	var uTxOuts []*UTxOut
 	creatorTxs := make(map[string]bool)
 
-	
-
+	// 이미 사용한 output인지 확인
 	for _, block := range b.Blocks() {
 		for _, tx := range block.Transactions {
 			for _, input := range tx.TxIns {
@@ -110,7 +109,11 @@ func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
 			for index, output := range tx.TxOuts {
 				if output.Owner == address {
 					if _, ok := creatorTxs[tx.ID]; !ok {
-						uTxOuts = append(uTxOuts, &UTxOut{tx.ID, index, output.Amount})
+						uTxOut := &UTxOut{tx.ID, index, output.Amount}
+						// mempool에 올려져있는 output 이라면 사용 불가
+						if !isOnMempool(uTxOut) {
+							uTxOuts = append(uTxOuts, uTxOut)
+						}
 					}
 				}
 			}
