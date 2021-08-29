@@ -60,12 +60,12 @@ func (b *Block) mine() {
 	}
 }
 
-func createBlock(prevHash string, height int) *Block {
+func createBlock(prevHash string, height int, diff int) *Block {
 	block := &Block{
 		Hash: "",
 		PrevHash: prevHash,
 		Height: height,
-		Difficulty: difficulty(Blockchain()),
+		Difficulty: diff,
 		Nonce: 0,
 	}
 	// hash 생성에 값들을 나열하면서 붙이는 방법이 좋지 못함.

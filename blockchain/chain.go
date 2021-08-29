@@ -30,7 +30,7 @@ func (b *blockchain) restore(data []byte) {
 }
 
 func (b *blockchain) AddBlock() {
-	block := createBlock(b.NewestHash, b.Height + 1)
+	block := createBlock(b.NewestHash, b.Height + 1, getDifficulty(b))
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	b.CurrentDifficulty = block.Difficulty
@@ -85,7 +85,7 @@ func recalculateDiffculty(b *blockchain) int {
 	return b.CurrentDifficulty
 }
 
-func difficulty(b *blockchain) int {
+func getDifficulty(b *blockchain) int {
 	if b.Height == 0 {
 		return defaultDifficulty
 	} else if b.Height % difficultyInterval == 0 {
@@ -137,26 +137,23 @@ func BalanceByAddress(address string, b *blockchain) int {
 }
 
 func Blockchain() *blockchain {
-	// only once execute
-	if b == nil {
-		once.Do(func() {
-			b = &blockchain{
-				Height: 0,
-			}
+	once.Do(func() {
+		b = &blockchain{
+			Height: 0,
+		}
 
-			// 이전의 Block들 복구
-			checkpoint := db.Checkpoint()
+		// 이전의 Block들 복구
+		checkpoint := db.Checkpoint()
 
-			// checkpoint not found
-			if checkpoint == nil {
-				b.AddBlock()
-			} else {
-				// search for checkpoint on the db
-				// restore
-				b.restore(checkpoint)
-			}
-		})
-	}
+		// checkpoint not found
+		if checkpoint == nil {
+			b.AddBlock()
+		} else {
+			// search for checkpoint on the db
+			// restore
+			b.restore(checkpoint)
+		}
+	})
 
 	fmt.Println(b.NewestHash)
 	return b
