@@ -128,6 +128,10 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func mempool(rw http.ResponseWriter, r *http.Request) {
+	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool.Txs))
+}
+
 func Start(aPort int) {
 	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
@@ -142,6 +146,7 @@ func Start(aPort int) {
 	// hex  => a-f0-9
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	router.HandleFunc("/balance/{address}", balance).Methods("GET")
+	router.HandleFunc("/mempool", mempool)
 	fmt.Printf("Listening on http://localhost%s\n",port)
 	// handler nil이면 default mux
 	log.Fatal(http.ListenAndServe(port,  router))
