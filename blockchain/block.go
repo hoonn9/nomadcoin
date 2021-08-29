@@ -65,7 +65,7 @@ func createBlock(prevHash string, height int) *Block {
 		Hash: "",
 		PrevHash: prevHash,
 		Height: height,
-		Difficulty: Blockchain().difficulty(),
+		Difficulty: difficulty(Blockchain()),
 		Nonce: 0,
 	}
 	// hash 생성에 값들을 나열하면서 붙이는 방법이 좋지 못함.
