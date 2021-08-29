@@ -67,7 +67,6 @@ func createBlock(prevHash string, height int) *Block {
 		Height: height,
 		Difficulty: Blockchain().difficulty(),
 		Nonce: 0,
-		Transactions: []*Tx{makeCoinbaseTx("nico")},
 	}
 	// hash 생성에 값들을 나열하면서 붙이는 방법이 좋지 못함.
 	// block 자체를 Hash
@@ -75,6 +74,9 @@ func createBlock(prevHash string, height int) *Block {
 	// block.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(payload)))
 
 	block.mine()
+	
+	// 채굴이 끝날 시점을 모르기 때문에 끝나고 추가해줌
+	block.Transactions = Mempool.txToConfirm()
 	block.persist()
 	return block
 }
