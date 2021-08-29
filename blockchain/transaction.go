@@ -21,19 +21,20 @@ type mempool struct {
 var Mempool *mempool = &mempool{}
 
 type Tx struct {
-	Id			string		`json:"id"`	
+	ID			string		`json:"id"`	
 	Timestamp	int   		`json:"timestamp"`	// 거래 발생 시간
 	TxIns		[]*TxIn		`json:"txIns"`		// 입력값
 	TxOuts		[]*TxOut	`json:"txOuts"`		// 출력값
 }
 
 func (t *Tx) getId() {
-	t.Id = utils.Hash(t)
+	t.ID = utils.Hash(t)
 }
 
 type TxIn struct {
+	TxID 	string	`json:"txId"`
+	Index 	int		`json:"index"`
 	Owner 	string 	`json:"owner"`
-	Amount	int		`json:"amount"`
 }
 
 type TxOut struct {
@@ -41,10 +42,17 @@ type TxOut struct {
 	Amount	int		`json:"amount"`
 }
 
+// Unspend Transaction
+type UTxOut struct {
+	TxID	string
+	Index	int
+	Amount	int
+}
+
 func makeCoinbaseTx(address string) *Tx {
 	txIns := []*TxIn{
 		{
-			"Coinbase", minerReward,
+			"", -1,	"Coinbase",
 		},
 	}
 
@@ -55,7 +63,7 @@ func makeCoinbaseTx(address string) *Tx {
 	}
 
 	tx := Tx{
-		Id: "",
+		ID: "",
 		Timestamp: int(time.Now().Unix()),
 		TxIns: txIns,
 		TxOuts: txOuts,
@@ -66,27 +74,25 @@ func makeCoinbaseTx(address string) *Tx {
 
 func makeTx(from, to string, amount int) (*Tx, error) {
 	if Blockchain().BalanceByAddress(from) < amount {
-		return nil, errors.New("not enough money")
+		return nil, errors.New("not enough amount")
 	}
-	// 송금 양 amount 만큼 txIn 생성
-	var txIns []*TxIn
-	var txOuts []*TxOut
-	total := 0
-	oldTxOuts := Blockchain().TxOutsByAddress(from)
 
-	// 같거나 커질 때까지
-	for _, txOut := range oldTxOuts {
-		if total >= amount {
+	var txOuts []*TxOut
+	var txIns []*TxIn
+
+	total := 0
+	uTxOuts := Blockchain().UTxOutsByAddress(from)
+
+	for _, uTxOut := range uTxOuts {
+		if total > amount {
 			break
 		}
-		txIn := &TxIn{txOut.Owner, txOut.Amount}
+		txIn := &TxIn{uTxOut.TxID, uTxOut.Index, from}
 		txIns = append(txIns, txIn)
-		total += txOut.Amount
+		total += uTxOut.Amount
 	}
 
-	// 잔돈
-	change := total - amount
-	if change != 0 {
+	if change := total -  amount; change != 0 {
 		changeTxOut := &TxOut{from, change}
 		txOuts = append(txOuts, changeTxOut)
 	}
@@ -94,14 +100,14 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 	txOut := &TxOut{to, amount}
 	txOuts = append(txOuts, txOut)
 
-	tx := &Tx {
-		Id: "",
+	tx := &Tx{
+		ID: "",
 		Timestamp: int(time.Now().Unix()),
 		TxIns: txIns,
 		TxOuts: txOuts,
 	}
 	tx.getId()
-
+	
 	return tx, nil
  }
 
