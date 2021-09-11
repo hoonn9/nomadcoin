@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hoonn9/nomadcoin/utils"
+	"github.com/hoonn9/nomadcoin/wallet"
 )
 
 // 1. Coinbase 방식
@@ -131,7 +132,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 
 // from 은 지갑에서 받아옴
 func (m *mempool) AddTx(to string, amount int) error {
-	tx, err := makeTx("nico", to, amount)
+	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
 		return err
 	}
@@ -141,7 +142,7 @@ func (m *mempool) AddTx(to string, amount int) error {
 }
 
 func (m *mempool) txToConfirm() []*Tx {
-	coinbase := makeCoinbaseTx("nico")
+	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
 
 	// tx 개수의 제한을 두지 않음
 	txs := m.Txs
