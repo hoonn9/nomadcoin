@@ -74,7 +74,6 @@ func validate(tx *Tx) bool {
 		}
 
 		address := prevTx.TxOuts[txIn.Index].Address
-
 		valid = wallet.Verify(txIn.Signature, tx.ID, address)
 
 		if !valid {
@@ -123,12 +122,12 @@ func makeCoinbaseTx(address string) *Tx {
 		TxOuts: txOuts,
 	}
 	tx.getId()
-	
+
 	return &tx
 }
 
-func makeTx(from, to string, amount int) (*Tx, error) {
-	if BalanceByAddress(from, Blockchain()) < amount {
+func makeTx(to string, amount int) (*Tx, error) {
+	if BalanceByAddress(wallet.Wallet().Address, Blockchain()) < amount {
 		return nil, ErrorNoMoney
 	}
 
@@ -136,19 +135,19 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 	var txIns []*TxIn
 
 	total := 0
-	uTxOuts := UTxOutsByAddress(from, Blockchain())
+	uTxOuts := UTxOutsByAddress(wallet.Wallet().Address, Blockchain())
 
 	for _, uTxOut := range uTxOuts {
 		if total >= amount {
 			break
 		}
-		txIn := &TxIn{uTxOut.TxID, uTxOut.Index, from}
+		txIn := &TxIn{uTxOut.TxID, uTxOut.Index, wallet.Wallet().Address}
 		txIns = append(txIns, txIn)
 		total += uTxOut.Amount
 	}
 
 	if change := total -  amount; change != 0 {
-		changeTxOut := &TxOut{from, change}
+		changeTxOut := &TxOut{wallet.Wallet().Address, change}
 		txOuts = append(txOuts, changeTxOut)
 	}
 
@@ -174,7 +173,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 
 // from 은 지갑에서 받아옴
 func (m *mempool) AddTx(to string, amount int) error {
-	tx, err := makeTx(wallet.Wallet().Address, to, amount)
+	tx, err := makeTx(to, amount)
 	if err != nil {
 		return err
 	}
