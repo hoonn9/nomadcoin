@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"os"
 
 	"github.com/hoonn9/nomadcoin/utils"
@@ -59,6 +60,24 @@ func restoreKey() (key *ecdsa.PrivateKey) {
 	return
 }
 
+func restoreBigInts(payload string) (*big.Int, *big.Int, error) {
+	bytes, err := hex.DecodeString(payload)
+	utils.HandleErr(err)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	firstHalfBytes := bytes[:len(bytes) / 2]
+	secondHalfBytes := bytes[len(bytes) / 2:]
+
+	bigA, bigB := big.Int{}, big.Int{}
+	bigA.SetBytes(firstHalfBytes)
+	bigB.SetBytes(secondHalfBytes)
+
+	return &bigA, &bigB, nil
+}
+
 func aFromK(key *ecdsa.PrivateKey) string {
 	z := append(key.X.Bytes(), key.Y.Bytes()...)
 	return fmt.Sprintf("%x", z)
@@ -75,8 +94,26 @@ func sign(payload string, w *wallet) string {
 	return fmt.Sprintf("%x", signature)
 }
 
-func verify(signature, hash, publicKey string) bool {
-	return false
+func verify(signature, payload, address string) bool {
+	r, s, err := restoreBigInts(signature)
+	utils.HandleErr(err)
+
+	x, y, err := restoreBigInts(address)
+	utils.HandleErr(err)
+
+	// make publicKey
+	publicKey := ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X: x,
+		Y: y,
+	}
+	
+	payloadAsBytes, err := hex.DecodeString(payload)
+
+	utils.HandleErr(err)
+
+	ok := ecdsa.Verify(&publicKey, payloadAsBytes, r, s)
+	return ok
 }
 
 func Wallet() *wallet {
