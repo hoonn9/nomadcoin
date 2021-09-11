@@ -5,5 +5,5 @@ import "github.com/hoonn9/nomadcoin/wallet"
 
 func main() {
 
-	wallet.Start()
+	wallet.Wallet()
 }
