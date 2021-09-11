@@ -28,18 +28,14 @@ type Tx struct {
 	TxOuts		[]*TxOut	`json:"txOuts"`		// 출력값
 }
 
-func (t *Tx) getId() {
-	t.ID = utils.Hash(t)
-}
-
 type TxIn struct {
 	TxID 	string	`json:"txId"`
 	Index 	int		`json:"index"`
-	Owner 	string 	`json:"owner"`
+	Signature 	string 	`json:"signature"`
 }
 
 type TxOut struct {
-	Owner	string 	`json:"owner"`
+	Address	string 	`json:"address"`
 	Amount	int		`json:"amount"`
 }
 
@@ -48,6 +44,45 @@ type UTxOut struct {
 	TxID	string
 	Index	int
 	Amount	int
+}
+
+var ErrorNoMoney = errors.New("not enough amount")
+var ErrorNotValid = errors.New("transaction invaild")
+
+func (tx *Tx) getId() {
+	tx.ID = utils.Hash(tx)
+}
+
+func (tx *Tx) sign() {
+	for _, txIn := range tx.TxIns {
+		txIn.Signature = wallet.Sign(tx.ID, wallet.Wallet())
+	}
+}
+
+func validate(tx *Tx) bool {
+	valid := true
+
+	// input에 참조되는 output의 소유를 증명
+
+	for _, txIn := range tx.TxIns {
+		// txIn.TXID => input으로 쓰이는 output을 만든 transaction ID
+		prevTx := FindTx(Blockchain(), txIn.TxID)
+
+		if prevTx == nil {
+			valid = false
+			break
+		}
+
+		address := prevTx.TxOuts[txIn.Index].Address
+
+		valid = wallet.Verify(txIn.Signature, tx.ID, address)
+
+		if !valid {
+			break
+		}
+	}
+
+	return valid
 }
 
 func isOnMempool(uTxOut *UTxOut) bool {
@@ -88,12 +123,13 @@ func makeCoinbaseTx(address string) *Tx {
 		TxOuts: txOuts,
 	}
 	tx.getId()
+	
 	return &tx
 }
 
 func makeTx(from, to string, amount int) (*Tx, error) {
 	if BalanceByAddress(from, Blockchain()) < amount {
-		return nil, errors.New("not enough amount")
+		return nil, ErrorNoMoney
 	}
 
 	var txOuts []*TxOut
@@ -126,6 +162,12 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 		TxOuts: txOuts,
 	}
 	tx.getId()
+	tx.sign()
+	valid := validate(tx)
+
+	if !valid {
+		return nil, ErrorNotValid
+	}
 
 	return tx, nil
  }

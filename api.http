@@ -12,7 +12,7 @@ POST http://localhost:4000/blocks
 ###
 http://localhost:4000/blocks/89ac3bc575e876952b0b32e19deeb0b1abfa57175c51779b92cf571cc7dfd4fa
 ###
-http://localhost:4000/balance/nico
+http://localhost:4000/balance/38a0b186012948542c79ab94d86a97a4ab3beb60d7e7fc417656fb81841a61ce3bd314946816ce4a9f3cd7eeb93ce26ee44aa29dd4507f7d91f31c2162966365
 ###
 http://localhost:4000/balance/kozel
 ###
@@ -26,3 +26,5 @@ POST http://localhost:4000/transactions
 }
 ###
 http://localhost:4000/mempool
+###
+http://localhost:4000/wallet

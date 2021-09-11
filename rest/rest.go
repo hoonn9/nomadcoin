@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hoonn9/nomadcoin/blockchain"
 	"github.com/hoonn9/nomadcoin/utils"
+	"github.com/hoonn9/nomadcoin/wallet"
 )
 
 var port string
@@ -40,6 +41,10 @@ type errResponse struct {
 type addTxPayload struct {
 	To string
 	Amount int
+}
+
+type myWalletResponse struct {
+	Address string `json:"address"`
 }
 
 func documentation(rw http.ResponseWriter, r *http.Request) {
@@ -150,6 +155,14 @@ func transactions(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 }
 
+func myWallet(rw http.ResponseWriter, r *http.Request) {
+	address := wallet.Wallet().Address
+	// direct typing
+	// json.NewEncoder(rw).Encode(struct{Address string `json:"address"`}{Address: address})
+	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
+	
+}
+
 func Start(aPort int) {
 	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
@@ -164,8 +177,9 @@ func Start(aPort int) {
 	// hex  => a-f0-9
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	router.HandleFunc("/balance/{address}", balance).Methods("GET")
-	router.HandleFunc("/mempool", mempool)
-	router.HandleFunc("/transactions", transactions).Methods(("POST"))
+	router.HandleFunc("/mempool", mempool).Methods("GET")
+	router.HandleFunc("/transactions", transactions).Methods("POST")
+	router.HandleFunc("/wallet", myWallet).Methods("GET")
 
 	fmt.Printf("Listening on http://localhost%s\n",port)
 	// handler nil이면 default mux
