@@ -125,7 +125,6 @@ func UTxOutsByAddress(address string, b *blockchain) []*UTxOut {
 				if input.Signature == "Coinbase" {
 					break
 				}
-				fmt.Println("input", input)
 
 				if FindTx(b, input.TxID).TxOuts[input.Index].Address == address {
 					creatorTxs[input.TxID] = true
