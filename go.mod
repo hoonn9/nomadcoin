@@ -5,8 +5,7 @@ module github.com/hoonn9/nomadcoin
 go 1.16
 
 require (
-	github.com/boltdb/bolt v1.3.1 // indirect
-	github.com/br0xen/boltbrowser v0.0.0-20210531150353-7f10a81cece0 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	github.com/boltdb/bolt v1.3.1
+	github.com/gorilla/mux v1.8.0
+	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 )

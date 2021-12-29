@@ -12,7 +12,7 @@ POST http://localhost:4000/blocks
 ###
 http://localhost:4000/blocks/89ac3bc575e876952b0b32e19deeb0b1abfa57175c51779b92cf571cc7dfd4fa
 ###
-http://localhost:4000/balance/1448244009e509e28cc561d438d41ced555832ea5a20c6716d5c5f55d0f961e256d4b575c278c90903bc56c06ce180cb49fdaaf118901fd230485d4b2439a523
+http://localhost:4000/balance/4b71030fb550017bea517c9e06deef6315ab0bc3c8aacfed9c25c2c61f3ce9fc961ea86e395e97f6c822ad1db80dfddb106ca247510178eec5c4cf70e29ae0f8?total=true
 ###
 http://localhost:4000/balance/kozel
 ###
