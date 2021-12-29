@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hoonn9/nomadcoin/blockchain"
+	"github.com/hoonn9/nomadcoin/p2p"
 	"github.com/hoonn9/nomadcoin/utils"
 	"github.com/hoonn9/nomadcoin/wallet"
 )
@@ -75,6 +76,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method: "GET",
 			Description: "Get TxOuts for and Address",
 		},
+		{
+			URL: url("/ws"),
+			Method: "GET",
+			Description: "Upgrade to WebSockets",
+		},
 	}
 	json.NewEncoder(rw).Encode(data)
 }
@@ -104,6 +110,13 @@ func block(rw http.ResponseWriter , r *http.Request) {
 	} else {
 		encoder.Encode(block)
 	}
+}
+
+func loggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.URL)
+		next.ServeHTTP(rw, r)
+	})
 }
 
 // middleware
@@ -165,12 +178,14 @@ func myWallet(rw http.ResponseWriter, r *http.Request) {
 	
 }
 
+
+
 func Start(aPort int) {
 	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
 	
 	// Middleware
-	router.Use(jsonContentTypeMiddleware)
+	router.Use(jsonContentTypeMiddleware, loggerMiddleware)
 
 	// Methods => request method 제한
 	router.HandleFunc("/", documentation).Methods("GET")
@@ -182,6 +197,7 @@ func Start(aPort int) {
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
+	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 
 	fmt.Printf("Listening on http://localhost%s\n",port)
 	// handler nil이면 default mux
