@@ -3,6 +3,7 @@ package p2p
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/hoonn9/nomadcoin/utils"
@@ -16,13 +17,16 @@ func Upgrade(rw http.ResponseWriter, r *http.Request) {
 	}
 	conn, err := upgrader.Upgrade(rw, r, nil)
 	utils.HandleErr(err)
+	openPort := r.URL.Query().Get("openPort")
 
-	initPeer(conn, "xx", "xx")
+	// remoteAddr 에는 실제 요청한 서버의 Open port가 업다.
+	result := strings.Split(r.RemoteAddr, ":")
+	initPeer(conn, result[0], openPort)
 
 }
 
-func AddToPeer(address, port string)  {
-	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws", address, port), nil)
+func AddToPeer(address, port, openPort string)  {
+	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort), nil)
 	utils.HandleErr(err)
 
 	initPeer(conn, address, port)
