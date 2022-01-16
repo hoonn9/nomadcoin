@@ -1,10 +1,10 @@
 http://localhost:4000/
 ### 
-http://localhost:3000/status
+http://localhost:4000/status
 ###
 http://localhost:4000/blocks
 ###
-POST http://localhost:4000/blocks
+POST http://localhost:3000/blocks
 
 ###
 http://localhost:4000/blocks/89ac3bc575e876952b0b32e19deeb0b1abfa57175c51779b92cf571cc7dfd4fa
@@ -19,10 +19,10 @@ POST http://localhost:4000/transactions
 
 {
     "to":"kozel",
-    "amount": 15
+    "amount": 5
 }
 ###
-http://localhost:4000/mempool
+http://localhost:3000/mempool
 ###
 http://localhost:4000/wallet
 ###

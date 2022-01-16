@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/hoonn9/nomadcoin/utils"
@@ -16,10 +17,19 @@ const (
 
 type mempool struct {
 	Txs []*Tx
+	m		sync.Mutex
 }
 
 // 메모리에 존재. BlockChain 처럼 싱글톤 패턴, 초기화할 필요 없음
-var Mempool *mempool = &mempool{}
+var m *mempool
+var memOnce sync.Once
+
+func Mempool() *mempool {
+	memOnce.Do(func() {
+		m = &mempool{}
+	})
+	return m
+}
 
 type Tx struct {
 	ID			string		`json:"id"`	
@@ -89,7 +99,7 @@ func isOnMempool(uTxOut *UTxOut) bool {
 
 	// label => 이중 for loop 에서 break 하는 방법
 	Outer:
-		for _, tx := range Mempool.Txs {
+		for _, tx := range Mempool().Txs {
 			for _, input := range tx.TxIns {
 				if input.TxID == uTxOut.TxID && input.Index == uTxOut.Index {
 					exists = true
@@ -172,14 +182,14 @@ func makeTx(to string, amount int) (*Tx, error) {
  }
 
 // from 은 지갑에서 받아옴
-func (m *mempool) AddTx(to string, amount int) error {
+func (m *mempool) AddTx(to string, amount int) (*Tx,error) {
 	tx, err := makeTx(to, amount)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m.Txs = append(m.Txs, tx)
-	return nil
+	return tx, nil
 }
 
 func (m *mempool) txToConfirm() []*Tx {
@@ -191,4 +201,11 @@ func (m *mempool) txToConfirm() []*Tx {
 	m.Txs = nil
 
 	return txs
+}
+
+func (m *mempool) AddPeerTx(tx *Tx) {
+	m.m.Lock()
+	defer m.m.Unlock()
+
+	m.Txs = append(m.Txs, tx)
 }

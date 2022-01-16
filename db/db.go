@@ -50,7 +50,8 @@ func DB() *bolt.DB {
 func SaveBlock(hash string, data []byte) {
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(blocksBucket))
-		return bucket.Put([]byte(hash), data)
+		err := bucket.Put([]byte(hash), data)
+		return err
 	})
 	utils.HandleErr(err)
 }
