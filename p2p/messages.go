@@ -15,9 +15,9 @@ type MessageKind int
 // 선언한 아래 부터 순서대로 설정됨 (0,1,2,3,4)
 const (
 	MessageNewestBlock				MessageKind = iota
-	MessageAllBlocksBlock
 	MessageAllBlocksResponse
 	MessageAllBlocksRequest
+	MessageNewBlockNotify
 
 )
 
@@ -55,6 +55,11 @@ func sendAllBlock(p *peer) {
 	p.inbox <- m
 }
 
+func notifyNewBlock(b *blockchain.Block, p *peer) {
+	m := makeMessage(MessageNewBlockNotify, b)
+	p.inbox <- m
+}
+
 func handleMsg(m *Message, p *peer) {
 	switch m.Kind {
 	case MessageNewestBlock:
@@ -82,7 +87,13 @@ func handleMsg(m *Message, p *peer) {
 
 		var payload []*blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+
 		blockchain.Blockchain().Replace(payload)
+	case MessageNewBlockNotify:
+		var payload *blockchain.Block
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+
+		blockchain.Blockchain().AddPeerBlock(payload)
 	}
 
 }
