@@ -58,6 +58,8 @@ func sendAllBlock(p *peer) {
 func handleMsg(m *Message, p *peer) {
 	switch m.Kind {
 	case MessageNewestBlock:
+		fmt.Printf("Received the newest block from %s\n", p.key)
+
 		var payload blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		
@@ -65,15 +67,22 @@ func handleMsg(m *Message, p *peer) {
 		utils.HandleErr(err)
 
 		if payload.Height >= b.Height {
+			fmt.Printf("Requesting all blocks from %s\n", p.key)
 			requestAllBlocks(p)
 		} else {
+			fmt.Printf("Sending newest block to %s\n", p.key)
 			sendNewestBlock(p)
 		}
 	case MessageAllBlocksRequest:
+		fmt.Printf("%s wants all the blocks.\n", p.key)
+
 		sendAllBlock(p)
 	case MessageAllBlocksResponse:
+		fmt.Printf("Received all the blocks from %s\n", p.key)
+
 		var payload []*blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		blockchain.Blockchain().Replace(payload)
 	}
 
 }
