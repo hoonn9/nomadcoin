@@ -15,14 +15,14 @@ http://localhost:4000/balance/kozel
 ###
 http://localhost:4000/balance/nico?total=true
 ###
-POST http://localhost:4000/transactions
+POST http://localhost:3000/transactions
 
 {
     "to":"kozel",
-    "amount": 5
+    "amount": 0
 }
 ###
-http://localhost:3000/mempool
+http://localhost:4000/mempool
 ###
 http://localhost:4000/wallet
 ###
