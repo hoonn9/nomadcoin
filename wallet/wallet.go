@@ -62,7 +62,6 @@ func restoreKey() (key *ecdsa.PrivateKey) {
 
 func restoreBigInts(payload string) (*big.Int, *big.Int, error) {
 	bytes, err := hex.DecodeString(payload)
-	utils.HandleErr(err)
 
 	if err != nil {
 		return nil, nil, err
