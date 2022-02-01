@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"io/fs"
 	"math/big"
 	"os"
 
@@ -17,20 +18,35 @@ const (
 	fileName string = "nomadcoin.wallet"
 )
 
+type fileLayer interface {
+	hasWalletFile() bool
+	writeFile(name string, data []byte, perm fs.FileMode) error
+	readFile(name string) ([]byte, error)
+}
+
+type layer struct{}
+
+func (layer) hasWalletFile() bool {
+	_, err := os.Stat(fileName)
+	return os.IsExist(err)
+}
+
+func (layer) writeFile(name string, data []byte, perm fs.FileMode) error {
+	return os.WriteFile(name, data, perm)
+}
+
+func (layer) readFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+var files fileLayer = layer{}
+
 type wallet struct {
 	privateKey	*ecdsa.PrivateKey
 	Address		string
 }
 
 var w *wallet
-
-func hasWalletFile() bool {
-	// exist check file
-	_, err := os.Stat(fileName)
-
-	// file not exist error 인지 확인
-	return os.IsExist(err)
-}
 
 func createPrivateKey() *ecdsa.PrivateKey {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -42,16 +58,15 @@ func createPrivateKey() *ecdsa.PrivateKey {
 func persistKey(key *ecdsa.PrivateKey) {
 	bytes, err := x509.MarshalECPrivateKey(key)
 	utils.HandleErr(err)
-
+	err = files.writeFile(fileName, bytes, 0644)
 	// variable, err 반환할 때 new variable이 오면 err := 로 가능하지만 아니면 err = 로 갱신 해줘야 함
-	err = os.WriteFile(fileName, bytes, 0644)
 	utils.HandleErr(err)
 }
 
 
 // named return => short function에서 사용
 func restoreKey() (key *ecdsa.PrivateKey) {
-	keyAsBytes, err := os.ReadFile(fileName)
+	keyAsBytes, err := files.readFile(fileName)
 	utils.HandleErr(err)
 
 	key, err = x509.ParseECPrivateKey(keyAsBytes)
@@ -124,7 +139,7 @@ func Wallet() *wallet {
 		// has a wallet already
 
 		// yes: restore from file
-		if hasWalletFile() {
+		if files.hasWalletFile() {
 			w.privateKey = restoreKey()
 		} else { // no: create private key, save to file
 			key := createPrivateKey()
