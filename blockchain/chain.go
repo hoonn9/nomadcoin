@@ -24,8 +24,17 @@ const (
 	allowedRange		int = 2
 )
 
+type storage interface{
+	FindBlock(hash string) []byte
+	SaveBlock(hash string, data []byte)
+	SaveChain(data []byte)
+	LoadChain() []byte
+	DeleteAllBlocks()
+}
+
 var b *blockchain
 var once sync.Once
+var dbStorage storage = db.DB{}
 
 func (b *blockchain) restore(data []byte) {
 	utils.FromBytes(b, data)
@@ -43,7 +52,7 @@ func (b *blockchain) AddBlock() *Block {
 
 
 func persistBlockchain(b *blockchain) {
-	db.SaveCheckpoint(utils.ToBytes(b))
+	dbStorage.SaveChain(utils.ToBytes(b))
 }
 
 
@@ -172,7 +181,7 @@ func Blockchain() *blockchain {
 		}
 
 		// 이전의 Block들 복구
-		checkpoint := db.Checkpoint()
+		checkpoint := dbStorage.LoadChain()
 
 		// checkpoint not found
 		if checkpoint == nil {
@@ -203,7 +212,7 @@ func (b *blockchain) Replace(newBlocks []*Block) {
 	b.NewestHash = newBlocks[0].Hash
 
 	persistBlockchain(b)
-	db.EmptyBlocks()
+	dbStorage.DeleteAllBlocks()
 
 	for _, block := range newBlocks {
 		persistBlock(block)

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hoonn9/nomadcoin/db"
 	"github.com/hoonn9/nomadcoin/utils"
 )
 
@@ -26,7 +25,7 @@ var ErrNotFound = errors.New("block not found")
 
 
 func persistBlock(b *Block) {
-	db.SaveBlock(b.Hash, utils.ToBytes(b))
+	dbStorage.SaveBlock(b.Hash, utils.ToBytes(b))
 }
 
 func (b *Block) restore(data []byte) {
@@ -34,7 +33,7 @@ func (b *Block) restore(data []byte) {
 }
 
 func FindBlock(hash string) (*Block, error){
-	blockBytes := db.Block(hash)
+	blockBytes := dbStorage.FindBlock(hash)
 	if blockBytes == nil {
 		return nil, ErrNotFound
 	}
@@ -72,10 +71,12 @@ func createBlock(prevHash string, height int, diff int) *Block {
 	// payload := block.Data + block.PrevHash + fmt.Sprint(block.Height)
 	// block.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(payload)))
 
-	block.mine()
-	
 	// 채굴이 끝날 시점을 모르기 때문에 끝나고 추가해줌
 	block.Transactions = Mempool().txToConfirm()
+
+	block.mine()
+
+	
 	persistBlock(block)
 	return block
 }
