@@ -174,3 +174,45 @@ func TestGetDifficulty(t *testing.T) {
 		 }
 	}
 }
+
+func TestAddPeerBlock(t *testing.T) {
+	bc := &blockchain{
+		Height: 1,
+		CurrentDifficulty: 1,
+		NewestHash: "test",
+	}
+	m.Txs["test"] = &Tx{}
+
+	newBlock := &Block{
+		Difficulty: 2,
+		Hash: "test",
+		Transactions: []*Tx{
+			{ID: "test"},
+		},
+	}
+
+	bc.AddPeerBlock(newBlock)
+
+	if bc.CurrentDifficulty != 2 || bc.Height != 2 || bc.NewestHash != "test" {
+		t.Error("AddPeerBlock() should mutate the blockchain")
+	}
+}
+
+func TestReplace(t *testing.T) {
+	bc := &blockchain{
+		Height: 1,
+		CurrentDifficulty: 1,
+		NewestHash: "test",
+	}
+	
+	blocks := []*Block{
+		{Difficulty: 2, Hash: "test"},
+		{Difficulty: 2, Hash: "test"},
+	}
+
+	bc.Replace(blocks)
+
+	if bc.CurrentDifficulty != 2 || bc.Height != 2 || bc.NewestHash != "test" {
+		t.Error("Replace() should mutate the blockchain")
+	}
+}
