@@ -1,36 +1,36 @@
 http://localhost:4000/
 ### 
-http://localhost:6000/status
+http://localhost:4000/status
 ###
-http://localhost:4000/blocks
+http://localhost:3000/blocks
 ###
-POST http://localhost:2000/blocks
+POST http://localhost:4000/blocks
 
 ###
 http://localhost:4000/blocks/89ac3bc575e876952b0b32e19deeb0b1abfa57175c51779b92cf571cc7dfd4fa
 ###
-http://localhost:4000/balance/4b71030fb550017bea517c9e06deef6315ab0bc3c8aacfed9c25c2c61f3ce9fc961ea86e395e97f6c822ad1db80dfddb106ca247510178eec5c4cf70e29ae0f8?total=true
+http://localhost:4000/balance/129620942fb59938f7bafd2231e754c4156ca984fb0f05f54f403acf10a65f8bc6422bb5ecbb55076df5777e7e44a8c9ec2702ee117585bfa0ca99dd25f1d7cd?total=true
 ###
 http://localhost:4000/balance/kozel
 ###
 http://localhost:4000/balance/nico?total=true
 ###
-POST http://localhost:3000/transactions
+POST http://localhost:4000/transactions
 
 {
     "to":"kozel",
-    "amount": 0
+    "amount": 5
 }
 ###
-http://localhost:4000/mempool
+http://localhost:3000/mempool
 ###
-http://localhost:4000/wallet
+http://localhost:3000/wallet
 ###
-POST http://localhost:2000/peers
+POST http://localhost:4000/peers
 
 {
     "address": "127.0.0.1",
-    "port": "6000"
+    "port": "3000"
 }
 ###
-http://localhost:3000/peers
+http://localhost:4000/peers

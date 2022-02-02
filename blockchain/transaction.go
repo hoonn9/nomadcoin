@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"sync"
 	"time"
@@ -8,6 +9,14 @@ import (
 	"github.com/hoonn9/nomadcoin/utils"
 	"github.com/hoonn9/nomadcoin/wallet"
 )
+
+type myWallet interface {
+	PrivateKey() *ecdsa.PrivateKey
+	Address() string 
+	Sign(payload string) string
+}
+
+var MyWallet myWallet = wallet.Wallet{}
 
 // 1. Coinbase 방식
 
@@ -67,7 +76,7 @@ func (tx *Tx) getId() {
 
 func (tx *Tx) sign() {
 	for _, txIn := range tx.TxIns {
-		txIn.Signature = wallet.Sign(tx.ID, wallet.Wallet())
+		txIn.Signature = MyWallet.Sign(tx.ID)
 	}
 }
 
@@ -139,7 +148,7 @@ func makeCoinbaseTx(address string) *Tx {
 }
 
 func makeTx(to string, amount int) (*Tx, error) {
-	if BalanceByAddress(wallet.Wallet().Address, Blockchain()) < amount {
+	if BalanceByAddress(MyWallet.Address(), Blockchain()) < amount {
 		return nil, ErrorNoMoney
 	}
 
@@ -147,19 +156,19 @@ func makeTx(to string, amount int) (*Tx, error) {
 	var txIns []*TxIn
 
 	total := 0
-	uTxOuts := UTxOutsByAddress(wallet.Wallet().Address, Blockchain())
+	uTxOuts := UTxOutsByAddress(MyWallet.Address(), Blockchain())
 
 	for _, uTxOut := range uTxOuts {
 		if total >= amount {
 			break
 		}
-		txIn := &TxIn{uTxOut.TxID, uTxOut.Index, wallet.Wallet().Address}
+		txIn := &TxIn{uTxOut.TxID, uTxOut.Index, MyWallet.Address()}
 		txIns = append(txIns, txIn)
 		total += uTxOut.Amount
 	}
 
 	if change := total -  amount; change != 0 {
-		changeTxOut := &TxOut{wallet.Wallet().Address, change}
+		changeTxOut := &TxOut{MyWallet.Address(), change}
 		txOuts = append(txOuts, changeTxOut)
 	}
 
@@ -195,7 +204,7 @@ func (m *mempool) AddTx(to string, amount int) (*Tx,error) {
 }
 
 func (m *mempool) txToConfirm() []*Tx {
-	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
+	coinbase := makeCoinbaseTx(MyWallet.Address())
 
 	var txs []*Tx
 

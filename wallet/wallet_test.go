@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/hex"
 	"io/fs"
@@ -29,7 +30,12 @@ func (fakeLayer) writeFile(name string, data []byte, perm fs.FileMode) error {
 
 func (fakeLayer) readFile(name string) ([]byte, error) {
 	// read file의 목적은 bytes를 리턴
-	return x509.MarshalECPrivateKey(makeTestWallet().privateKey)
+	return x509.MarshalECPrivateKey(makeTestWallet().fakePrivateKey())
+}
+
+type fakeWallet struct{
+	fakePrivateKey func() *ecdsa.PrivateKey
+	fakeAddress func() string
 }
 
 func TestWallet(t *testing.T) {
@@ -38,8 +44,8 @@ func TestWallet(t *testing.T) {
 			fakeHasWalletFile: func() bool {return false},
 		}
 
-		w :=  Wallet()
-		if reflect.TypeOf(w) != reflect.TypeOf(&wallet{}) {
+		InitWallet()
+		if reflect.TypeOf(w) != reflect.TypeOf(&Wallet{}) {
 			t.Error("New Wallet should return a new wallet instance")
 		}
 	})
@@ -50,21 +56,31 @@ func TestWallet(t *testing.T) {
 		}
 		// created test에서 생성된 wallet 비워주기
 		w = nil		
-		w :=  Wallet()
-		if reflect.TypeOf(w) != reflect.TypeOf(&wallet{}) {
+		InitWallet()
+		if reflect.TypeOf(w) != reflect.TypeOf(&Wallet{}) {
 			t.Error("New Wallet should return a new wallet instance")
 		}
 	})
 }
 
 
-func makeTestWallet() *wallet {
-	w := &wallet{}
-	b, _ := hex.DecodeString(testKey)
-	key, _ := x509.ParseECPrivateKey(b)
+func makeTestWallet() *fakeWallet {
+	w := &fakeWallet{
+		fakePrivateKey: func() *ecdsa.PrivateKey {
+			b, _ := hex.DecodeString(testKey)
+			key, _ := x509.ParseECPrivateKey(b)
+		
+			return key
+		},
+		fakeAddress: func() string {
+			b, _ := hex.DecodeString(testKey)
+			key, _ := x509.ParseECPrivateKey(b)
 
-	w.privateKey = key
-	w.Address = aFromK(key)
+			return aFromK(key)
+
+		},
+	}
+
 	return w
 }
 
@@ -82,7 +98,7 @@ func TestVerify(t *testing.T) {
 	for _, tc := range tests {
 
 		w := makeTestWallet()
-		ok := Verify(testSignature, testPayload, w.Address)
+		ok := Verify(testSignature, testPayload, w.fakeAddress())
 
 		if ok != tc.ok {
 			t.Error("Verify could not verify testSignature and Payload")
@@ -99,7 +115,7 @@ func TestRestoreBigInts(t *testing.T) {
 }
 
 func TestSign(t *testing.T) {
-	signature := Sign(testPayload, makeTestWallet())
+	signature := w.Sign(testPayload)
 
 	_, err := hex.DecodeString(signature)
 

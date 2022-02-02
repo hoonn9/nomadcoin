@@ -10,7 +10,6 @@ import (
 	"github.com/hoonn9/nomadcoin/blockchain"
 	"github.com/hoonn9/nomadcoin/p2p"
 	"github.com/hoonn9/nomadcoin/utils"
-	"github.com/hoonn9/nomadcoin/wallet"
 )
 
 var port string
@@ -178,7 +177,8 @@ func transactions(rw http.ResponseWriter, r *http.Request) {
 }
 
 func myWallet(rw http.ResponseWriter, r *http.Request) {
-	address := wallet.Wallet().Address
+	address := blockchain.MyWallet.Address()
+
 	// direct typing
 	// json.NewEncoder(rw).Encode(struct{Address string `json:"address"`}{Address: address})
 	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})

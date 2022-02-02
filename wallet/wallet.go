@@ -28,7 +28,7 @@ type layer struct{}
 
 func (layer) hasWalletFile() bool {
 	_, err := os.Stat(fileName)
-	return os.IsExist(err)
+	return !os.IsNotExist(err)
 }
 
 func (layer) writeFile(name string, data []byte, perm fs.FileMode) error {
@@ -41,12 +41,26 @@ func (layer) readFile(name string) ([]byte, error) {
 
 var files fileLayer = layer{}
 
-type wallet struct {
-	privateKey	*ecdsa.PrivateKey
-	Address		string
+type Wallet struct {}
+
+var w *Wallet
+
+func (Wallet) PrivateKey() *ecdsa.PrivateKey {
+	if files.hasWalletFile() {
+		return restoreKey()
+	} 
+	key := createPrivateKey()
+	persistKey(key)
+	return key
 }
 
-var w *wallet
+func (w Wallet) Address() string {
+	return aFromK(Wallet.PrivateKey(w))
+}
+
+func (w Wallet) Sign(payload string) string {
+	return sign(payload, &w)
+}
 
 func createPrivateKey() *ecdsa.PrivateKey {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -101,11 +115,11 @@ func aFromK(key *ecdsa.PrivateKey) string {
 	return encodeBigInts(key.X.Bytes(), key.Y.Bytes())
 }
 
-func Sign(payload string, w *wallet) string {
+func sign(payload string, w *Wallet) string {
 	payloadAsBytes, err := hex.DecodeString(payload)
 	utils.HandleErr(err)
 
-	r, s, err := ecdsa.Sign(rand.Reader, w.privateKey, payloadAsBytes)
+	r, s, err := ecdsa.Sign(rand.Reader, w.PrivateKey(), payloadAsBytes)
 	utils.HandleErr(err)
 
 	return encodeBigInts(r.Bytes(), s.Bytes())
@@ -133,21 +147,8 @@ func Verify(signature, payload, address string) bool {
 	return ok
 }
 
-func Wallet() *wallet {
+func InitWallet() {
 	if w == nil {
-		w = &wallet{}
-		// has a wallet already
-
-		// yes: restore from file
-		if files.hasWalletFile() {
-			w.privateKey = restoreKey()
-		} else { // no: create private key, save to file
-			key := createPrivateKey()
-			persistKey(key)
-			w.privateKey = key
-		}
-		w.Address = aFromK(w.privateKey)
+		w = &Wallet{}
 	}
-
-	return w
 }

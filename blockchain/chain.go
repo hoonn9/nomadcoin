@@ -42,6 +42,7 @@ func (b *blockchain) restore(data []byte) {
 
 func (b *blockchain) AddBlock() *Block {
 	block := createBlock(b.NewestHash, b.Height + 1, getDifficulty(b))
+
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	b.CurrentDifficulty = block.Difficulty
@@ -65,9 +66,13 @@ func Blocks(b *blockchain) []*Block {
 
 	// while(true) 종료는 break
 	for {
-		block, _ := FindBlock(hashCursor)
+		block, err := FindBlock(hashCursor)
 		blocks = append(blocks, block)
 
+		if err != nil {
+			break
+		}
+		
 		if block.PrevHash != "" {
 			hashCursor = block.PrevHash
 		} else {
@@ -178,6 +183,7 @@ func Blockchain() *blockchain {
 	once.Do(func() {
 		b = &blockchain{
 			Height: 0,
+			NewestHash: "",
 		}
 
 		// 이전의 Block들 복구
